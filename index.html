@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Calculadora interactiva basada en la ecuación diferencial exacta de la Ley de Enfriamiento de Newton. Simulación, estimaciones de constante k, temperatura y tiempo.">
+    <title>Ley de Enfriamiento de Newton | Calculadora Interactiva</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome para iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Chart.js para la curva de temperatura -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Estilos de la aplicación -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="background-decorations">
+        <div class="blob blob-orange"></div>
+        <div class="blob blob-blue"></div>
+    </div>
+
+    <!-- Alert / Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="logo-area">
+                <i class="fa-solid fa-temperature-half header-icon"></i>
+                <div>
+                    <h1>Ley de Enfriamiento de Newton</h1>
+                    <p class="subtitle">Calculadora Interactiva Basada en Ecuación Diferencial Exacta</p>
+                </div>
+            </div>
+            <div class="formula-badge">
+                <span>\(T(t) = T_a + (T_0 - T_a)e^{kt}\)</span>
+            </div>
+        </header>
+
+        <!-- Main Content Grid -->
+        <main class="main-grid">
+            
+            <!-- Left Column: Calculation Cards -->
+            <section class="calculator-column">
+                
+                <!-- STEP 1 CARD -->
+                <div class="card glass-card card-step-1" id="step1-card">
+                    <div class="card-header">
+                        <div class="step-badge">Paso 1</div>
+                        <h2>Encontrar la constante 'k'</h2>
+                    </div>
+                    <p class="card-desc">Calcula la constante de proporcionalidad (k) usando una lectura de temperatura en un tiempo conocido.</p>
+                    
+                    <form id="form-step-1" class="calc-form" onsubmit="event.preventDefault();">
+                        <div class="form-grid">
+                            <div class="input-group">
+                                <label for="T0_1">Temp. Inicial (T₀) °C</label>
+                                <div class="input-wrapper">
+                                    <i class="fa-solid fa-fire icon-input"></i>
+                                    <input type="number" step="any" id="T0_1" placeholder="Ej. 100" required>
+                                </div>
+                            </div>
+                            <div class="input-group">
+                                <label for="Ta_1">Temp. Ambiente (Tₐ) °C</label>
+                                <div class="input-wrapper">
+                                    <i class="fa-solid fa-wind icon-input"></i>
+                                    <input type="number" step="any" id="Ta_1" placeholder="Ej. 20" required>
+                                </div>
+                            </div>
+                            <div class="input-group">
+                                <label for="Tt_1">Temp. Medida (T(t)) °C</label>
+                                <div class="input-wrapper">
+                                    <i class="fa-solid fa-thermometer-half icon-input"></i>
+                                    <input type="number" step="any" id="Tt_1" placeholder="Ej. 60" required>
+                                </div>
+                            </div>
+                            <div class="input-group">
+                                <label for="t_1">Tiempo Transcurrido (t)</label>
+                                <div class="input-wrapper">
+                                    <i class="fa-solid fa-clock icon-input"></i>
+                                    <input type="number" step="any" min="0.0001" id="t_1" placeholder="Ej. 10" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button type="button" id="btn-k" class="btn btn-primary">
+                            <span>Calcular Constante k</span>
+                            <i class="fa-solid fa-calculator"></i>
+                        </button>
+                    </form>
+
+                    <div class="result-area hidden" id="result-k-container">
+                        <div class="result-box">
+                            <span class="result-label">Constante k calculada:</span>
+                            <div class="result-value-container">
+                                <span class="result-value" id="out-k">-0.000000</span>
+                                <span class="result-unit">min⁻¹</span>
+                            </div>
+                            <p class="result-note"><i class="fa-solid fa-circle-info"></i> Este valor se ha auto-llenado en el Paso 2 y Paso 3.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 2 CARD -->
+                <div class="card glass-card card-step-2" id="step2-card">
+                    <div class="card-header">
+                        <div class="step-badge">Paso 2</div>
+                        <h2>Predecir una Temperatura</h2>
+                    </div>
+                    <p class="card-desc">Predice la temperatura del objeto en cualquier instante del tiempo transcurrido.</p>
+                    
+                    <form id="form-step-2" class="calc-form" onsubmit="event.preventDefault();">
+                        <div class="form-grid">
+                            <div class="input-group">
+                                <label for="T0_2">Temp. Inicial (T₀) °C</label>
+                                <div class="input-wrapper">
+                                    <i class="fa-solid fa-fire icon-input"></i>
+                                    <input type="number" step="any" id="T0_2" placeholder="Ej. 100" required>
+                                </div>
+                            </div>
+                            <div class="input-group">
+                                <label for="Ta_2">Temp. Ambiente (Tₐ) °C</label>
+                                <div class="input-wrapper">
+                                    <i class="fa-solid fa-wind icon-input"></i>
+                                    <input type="number" step="any" id="Ta_2" placeholder="Ej. 20" required>
+                                </div>
+                            </div>
+                            <div class="input-group">
+                                <label for="k_2">Constante (k) min⁻¹</label>
+                                <div class="input-wrapper">
+                                    <i class="fa-solid fa-chart-line icon-input"></i>
+                                    <input type="number" step="any" id="k_2" placeholder="Ej. -0.069315" required>
+                                </div>
+                            </div>
+                            <div class="input-group">
+                                <label for="t_2">Tiempo a Consultar (t)</label>
+                                <div class="input-wrapper">
+                                    <i class="fa-solid fa-hourglass-half icon-input"></i>
+                                    <input type="number" step="any" min="0" id="t_2" placeholder="Ej. 20" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button type="button" id="btn-temp" class="btn btn-secondary">
+                            <span>Calcular Temperatura</span>
+                            <i class="fa-solid fa-temperature-arrow-down"></i>
+                        </button>
+                    </form>
+
+                    <div class="result-area hidden" id="result-temp-container">
+                        <div class="result-box">
+                            <span class="result-label">Temperatura en el tiempo consultado:</span>
+                            <div class="result-value-container">
+                                <span class="result-value" id="out-temp">0.00</span>
+                                <span class="result-unit">°C</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 3 CARD -->
+                <div class="card glass-card card-step-3" id="step3-card">
+                    <div class="card-header">
+                        <div class="step-badge">Paso 3</div>
+                        <h2>Calcular Tiempo Requerido</h2>
+                    </div>
+                    <p class="card-desc">Determina el tiempo necesario para alcanzar una temperatura objetivo específica.</p>
+                    
+                    <form id="form-step-3" class="calc-form" onsubmit="event.preventDefault();">
+                        <div class="form-grid">
+                            <div class="input-group">
+                                <label for="T0_3">Temp. Inicial (T₀) °C</label>
+                                <div class="input-wrapper">
+                                    <i class="fa-solid fa-fire icon-input"></i>
+                                    <input type="number" step="any" id="T0_3" placeholder="Ej. 100" required>
+                                </div>
+                            </div>
+                            <div class="input-group">
+                                <label for="Ta_3">Temp. Ambiente (Tₐ) °C</label>
+                                <div class="input-wrapper">
+                                    <i class="fa-solid fa-wind icon-input"></i>
+                                    <input type="number" step="any" id="Ta_3" placeholder="Ej. 20" required>
+                                </div>
+                            </div>
+                            <div class="input-group">
+                                <label for="k_3">Constante (k) min⁻¹</label>
+                                <div class="input-wrapper">
+                                    <i class="fa-solid fa-chart-line icon-input"></i>
+                                    <input type="number" step="any" id="k_3" placeholder="Ej. -0.069315" required>
+                                </div>
+                            </div>
+                            <div class="input-group">
+                                <label for="Tobj_3">Temp. Objetivo (T_obj) °C</label>
+                                <div class="input-wrapper">
+                                    <i class="fa-solid fa-bullseye icon-input"></i>
+                                    <input type="number" step="any" id="Tobj_3" placeholder="Ej. 30" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button type="button" id="btn-time" class="btn btn-accent">
+                            <span>Calcular Tiempo</span>
+                            <i class="fa-solid fa-clock-rotate-left"></i>
+                        </button>
+                    </form>
+
+                    <div class="result-area hidden" id="result-time-container">
+                        <div class="result-box">
+                            <span class="result-label">Tiempo total requerido:</span>
+                            <div class="result-value-container">
+                                <span class="result-value" id="out-time">0.00</span>
+                                <span class="result-unit">minutos</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- Right Column: Visualizer & Explanations -->
+            <section class="visualizer-column">
+                <!-- CHICKEN VISUALIZER CARD -->
+                <div class="card glass-card chicken-card" id="chicken-card">
+                    <div class="card-header">
+                        <h2><i class="fa-solid fa-drumstick-bite"></i> El Pollo Térmico: Simulación de Estado</h2>
+                        <span class="badge-temp" id="chicken-temp-badge">100.0 °C</span>
+                    </div>
+                    <p class="card-desc">Observa el estado del pollo en tiempo real según la temperatura. ¡Usa la línea de tiempo abajo para simular!</p>
+                    
+                    <div class="chicken-visual-container">
+                        <!-- Steam lines -->
+                        <div class="steam-container" id="steam-container">
+                            <div class="steam-line s1"></div>
+                            <div class="steam-line s2"></div>
+                            <div class="steam-line s3"></div>
+                        </div>
+                        
+                        <!-- Snowflake particles for freezing -->
+                        <div class="frost-container hidden" id="frost-container">
+                            <div class="snowflake sf1"><i class="fa-regular fa-snowflake"></i></div>
+                            <div class="snowflake sf2"><i class="fa-regular fa-snowflake"></i></div>
+                            <div class="snowflake sf3"><i class="fa-regular fa-snowflake"></i></div>
+                        </div>
+
+                        <!-- Chicken SVG with dynamic glow -->
+                        <div class="chicken-glow-aura" id="chicken-glow"></div>
+                        <svg viewBox="0 0 120 100" class="chicken-svg">
+                            <!-- Plate -->
+                            <ellipse cx="60" cy="85" rx="45" ry="10" fill="#4b5563" opacity="0.3"/>
+                            <ellipse cx="60" cy="83" rx="40" ry="8" fill="#1f2937" opacity="0.6"/>
+                            
+                            <!-- Chicken Left Leg Bone -->
+                            <line x1="30" y1="65" x2="15" y2="52" stroke="#f3f4f6" stroke-width="6" stroke-linecap="round" />
+                            <circle cx="13" cy="52" r="5" fill="#f3f4f6" />
+                            <circle cx="17" cy="49" r="5" fill="#f3f4f6" />
+                            
+                            <!-- Chicken Right Leg Bone -->
+                            <line x1="90" y1="65" x2="105" y2="52" stroke="#f3f4f6" stroke-width="6" stroke-linecap="round" />
+                            <circle cx="107" cy="52" r="5" fill="#f3f4f6" />
+                            <circle cx="103" cy="49" r="5" fill="#f3f4f6" />
+                            
+                            <!-- Chicken Left Leg Meat -->
+                            <path d="M 32,70 C 20,68 20,54 30,55 C 38,56 42,66 38,72 Z" fill="url(#chickenGrad)" />
+                            
+                            <!-- Chicken Right Leg Meat -->
+                            <path d="M 88,70 C 100,68 100,54 90,55 C 82,56 78,66 82,72 Z" fill="url(#chickenGrad)" />
+
+                            <!-- Chicken Body -->
+                            <path d="M 35,75 C 22,60 25,35 45,30 C 55,27 65,27 75,30 C 95,35 98,60 85,75 Z" fill="url(#chickenGrad)" />
+                            
+                            <!-- Left Wing -->
+                            <path d="M 40,65 C 32,58 35,46 45,45 C 48,45 52,55 48,65 Z" fill="url(#chickenGradDark)" />
+                            
+                            <!-- Right Wing -->
+                            <path d="M 80,65 C 88,58 85,46 75,45 C 72,45 68,55 72,65 Z" fill="url(#chickenGradDark)" />
+                            
+                            <defs>
+                                <linearGradient id="chickenGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                    <stop offset="0%" id="chickenGrad-start" stop-color="#f59e0b" />
+                                    <stop offset="100%" id="chickenGrad-end" stop-color="#b45309" />
+                                </linearGradient>
+                                <linearGradient id="chickenGradDark" x1="0%" y1="0%" x2="0%" y2="100%">
+                                    <stop offset="0%" id="chickenGradDark-start" stop-color="#d97706" />
+                                    <stop offset="100%" id="chickenGradDark-end" stop-color="#78350f" />
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                    </div>
+
+                    <!-- Storytelling Description -->
+                    <div class="story-bubble">
+                        <div class="story-icon" id="story-icon-box"><i class="fa-solid fa-info-circle"></i></div>
+                        <p id="chicken-story">Ingresa los valores del Paso 1 para calcular la constante de enfriamiento 'k' e iniciar la simulación del pollo.</p>
+                    </div>
+
+                    <!-- Timeline Scrub Controller -->
+                    <div class="timeline-control">
+                        <div class="timeline-header">
+                            <span class="timeline-label"><i class="fa-solid fa-timeline"></i> Línea de Tiempo de Enfriamiento:</span>
+                            <span class="timeline-value" id="timeline-time-val">0.0 min</span>
+                        </div>
+                        <input type="range" id="chicken-timeline" min="0" max="60" step="0.5" value="0" class="slider-timeline" disabled>
+                    </div>
+                </div>
+
+                <!-- CHART CARD -->
+                <div class="card glass-card chart-card">
+                    <div class="chart-header">
+                        <h2><i class="fa-solid fa-chart-area"></i> Simulación Gráfica de Temperatura</h2>
+                        <span class="chart-status" id="chart-status-label">Ingresa datos en el Paso 1 para simular</span>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="coolingChart"></canvas>
+                    </div>
+                    <div class="chart-legend">
+                        <div class="legend-item"><span class="legend-color ambient"></span> Ambiente (Tₐ)</div>
+                        <div class="legend-item"><span class="legend-color initial"></span> Inicial (T₀)</div>
+                        <div class="legend-item"><span class="legend-color curve"></span> Curva de Temperatura</div>
+                        <div class="legend-item hidden" id="legend-current"><span class="legend-color point"></span> Punto Calculado</div>
+                    </div>
+                </div>
+
+                <!-- INFO CARD -->
+                <div class="card glass-card info-card">
+                    <h2><i class="fa-solid fa-book-open"></i> Ecuaciones y Transferencia de Calor</h2>
+                    <div class="equations-grid">
+                        <div class="eq-item">
+                            <h3>Ley de Enfriamiento</h3>
+                            <code>T(t) = Ta + (T0 - Ta) * e^(kt)</code>
+                            <p>Modela cómo cambia la temperatura de un cuerpo sumergido en un medio a temperatura constante.</p>
+                        </div>
+                        <div class="eq-item">
+                            <h3>Constante de Cambio (k)</h3>
+                            <code>k = ln((T(t) - Ta) / (T0 - Ta)) / t</code>
+                            <p>Refleja las propiedades térmicas del objeto y la capacidad de transferencia de calor del medio.</p>
+                        </div>
+                    </div>
+                    <div class="thermo-laws">
+                        <h4><i class="fa-solid fa-triangle-exclamation"></i> Consideraciones Termodinámicas:</h4>
+                        <ul>
+                            <li><strong>Ley Cero de la Termodinámica:</strong> Dos sistemas en equilibrio térmico tienen la misma temperatura. Un objeto tiende a alcanzar el equilibrio con su ambiente ($T(t) \to T_a$).</li>
+                            <li><strong>Dirección del calor:</strong> El calor fluye espontáneamente de zonas calientes a frías. Sin un refrigerador o calentador externo, la temperatura del objeto no cruzará la temperatura del medio ambiente.</li>
+                            <li><strong>Límites matemáticos:</strong> Intentar calcular $k$ con lecturas térmicas en la dirección opuesta al flujo natural o cruzar la asíntota de $T_a$ generará valores imaginarios ($\ln(\text{negativo})$).</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Script de la aplicación -->
+    <script src="script.js"></script>
+</body>
+</html>
